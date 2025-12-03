@@ -1,0 +1,166 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.39.26.7824",
+      "templateHash": "15418957393355157348"
+    }
+  },
+  "parameters": {
+    "StringConexao": {
+      "type": "string",
+      "metadata": {
+        "description": "String de Conexao com o SQL Server"
+      }
+    },
+    "registryPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Senha para conseguir acesso ao registry. Solicite no canal de suporte do Power Omni"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Localização do recurso (padrão: mesmo do resource group)."
+      }
+    },
+    "AppServiceNamePrefix": {
+      "type": "string",
+      "defaultValue": "poweromni-sql",
+      "metadata": {
+        "description": "Nome do App Service. Mudar apenas se tiver outro padrão"
+      }
+    },
+    "containerImage": {
+      "type": "string",
+      "defaultValue": "omni/mssql-connector",
+      "metadata": {
+        "description": "Nome da imagem. Altere somente se for orientado pelo time da Power Tuning"
+      }
+    },
+    "containerTag": {
+      "type": "string",
+      "defaultValue": "v0.3.7",
+      "metadata": {
+        "description": "Versão da imagem. Altere somente se for orientado pelo time da Power Tuning"
+      }
+    },
+    "RegistryPower": {
+      "type": "string",
+      "defaultValue": "registry.powertuning.com.br",
+      "metadata": {
+        "description": "Endereço do registry da power tuning. Altere somente se for orientado pelo time da Power Tuning"
+      }
+    },
+    "ApiKeysCount": {
+      "type": "int",
+      "defaultValue": 4,
+      "metadata": {
+        "description": "Número de apis keys para gerar. Altere somente se for orientado pelo time da Power Tuning"
+      }
+    },
+    "apiKeySeed": {
+      "type": "string",
+      "defaultValue": "[newGuid()]",
+      "metadata": {
+        "description": "Valor aleatorio base para gerara as keys! Altere somente se for orientado pelo time da Power Tuning"
+      }
+    }
+  },
+  "variables": {
+    "copy": [
+      {
+        "name": "apiKeys",
+        "count": "[length(range(0, parameters('ApiKeysCount')))]",
+        "input": "[replace(format('{0}{1}', uniqueString(deployment().name, parameters('apiKeySeed'), string(range(0, parameters('ApiKeysCount'))[copyIndex('apiKeys')])), uniqueString(guid(parameters('apiKeySeed')), string(range(0, parameters('ApiKeysCount'))[copyIndex('apiKeys')]), deployment().name)), ';', '')]"
+      }
+    ],
+    "containerRegistryServer": "[parameters('RegistryPower')]",
+    "ContainerFullImage": "[format('{0}/{1}:{2}', variables('containerRegistryServer'), parameters('containerImage'), parameters('containerTag'))]",
+    "appServiceName": "[format('{0}-{1}', parameters('AppServiceNamePrefix'), uniqueString(resourceGroup().id, parameters('AppServiceNamePrefix')))]",
+    "PlanName": "[format('{0}-plan', variables('appServiceName'))]",
+    "appServiceUrl": "[format('https://{0}.azurewebsites.net', variables('appServiceName'))]",
+    "apiKeysJoined": "[join(variables('apiKeys'), ';')]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2023-12-01",
+      "name": "[variables('PlanName')]",
+      "location": "[parameters('location')]",
+      "kind": "linux",
+      "sku": {
+        "name": "B1",
+        "tier": "Basic",
+        "size": "B1",
+        "capacity": 1
+      },
+      "properties": {
+        "reserved": true
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2023-12-01",
+      "name": "[variables('appServiceName')]",
+      "location": "[parameters('location')]",
+      "kind": "app,linux,container",
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('PlanName'))]",
+        "httpsOnly": true,
+        "siteConfig": {
+          "linuxFxVersion": "sitecontainers",
+          "alwaysOn": true,
+          "appSettings": [
+            {
+              "name": "PUBLIC_URLS",
+              "value": "[variables('appServiceUrl')]"
+            },
+            {
+              "name": "KEYS",
+              "value": "[variables('apiKeysJoined')]"
+            },
+            {
+              "name": "SQL_CONNECTION",
+              "value": "[parameters('StringConexao')]"
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('PlanName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Web/sites/sitecontainers",
+      "apiVersion": "2025-03-01",
+      "name": "[format('{0}/{1}', variables('appServiceName'), 'main')]",
+      "kind": "app",
+      "properties": {
+        "image": "[variables('ContainerFullImage')]",
+        "isMain": true,
+        "authType": "UserCredentials",
+        "userName": "token",
+        "passwordSecret": "[parameters('registryPassword')]",
+        "inheritAppSettingsAndConnectionStrings": true,
+        "targetPort": "3000"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', variables('appServiceName'))]"
+      ]
+    }
+  ],
+  "outputs": {
+    "appServiceUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "Url do App Service"
+      },
+      "value": "[variables('appServiceUrl')]"
+    }
+  }
+}

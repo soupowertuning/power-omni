@@ -1,0 +1,19 @@
+services:
+    conector:
+        image: registry.powertuning.com.br/omni/mssql-connector:latest
+        environment:
+            SQL_CONNECTION: $SQL_CONNECTION
+            KEYS: "" # configurar as keys de autenticacao. Use nomes aleatorios separado por ponto virgula.. Exemplo: sk-PowerTuning123;sk-PowerOmni@SenhaForte
+            PUBLIC_URLS: https://$NGROK_DOMAIN
+            AUTO_RELOAD: 60000
+            NODE_PARAMS: ${NODE_PARAMS}
+        ports:
+          - 3000:3000
+        expose:
+          - 3000
+
+    ngrok:
+        image: ngrok/ngrok:latest 
+        command: http --log-level debug  conector:3000 --url $NGROK_DOMAIN 
+        environment:
+           NGROK_AUTHTOKEN: $NGROK_TOKEN 

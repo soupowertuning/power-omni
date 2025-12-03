@@ -1,0 +1,53 @@
+# Atenção aos comentários para ajustar ou comentar as opcoes!
+
+services:  
+    app:
+        image: registry.powertuning.com.br/omni/mssql-connector:latest 
+        expose:
+          - 3000:3000
+          - $NODE_DEBUG_PORT:9229
+        environment:
+            SQL_CONNECTION: Server=NomeInstancia;Database=Banco;User Id=Usuario;Password=Senha
+            KEYS: "" # configurar as keys de autenticacao. Use nomes aleatorios separado por ponto virgula.. Exemplo: 23ofnuewu9n3q9f20;99j3mknaBVADDBSDFEI
+            PUBLIC_URLS: https://sql.localtest.me # Subtituir pelo nome que estara acessivel!
+            
+            NODE_DEBUG_PORT: $NODE_DEBUG_PORT 
+            NODE_ENV: ${NODE_ENV:-production}
+            CUSTOM_AUTHSCHEME: ${CUSTOM_AUTHSCHEME}
+            BASIC_AUTH: ${BASIC_AUTH}
+            AUTO_RELOAD: 60000
+            NODE_PARAMS: ${NODE_PARAMS}
+        labels:
+            - "traefik.http.routers.sqlprocapi.rule=Host(`sql.localtest.me`)"
+            - "traefik.http.routers.sqlprocapi.tls.certresolver=lets"
+            - "traefik.http.services.sqlprocapi.loadbalancer.server.port=3000"
+            
+    traefik:
+        image: traefik:v3.5
+        command:
+          - "--providers.docker=true"
+          - "--entrypoints.http.address=:80"
+          - "--entrypoints.https.address=:443"
+          - "--entrypoints.https.http.tls=true"
+          - "--certificatesResolvers.lets.acme.storage=/letsencrypt/acme.json"
+          - "--certificatesResolvers.lets.acme.httpChallenge.entryPoint=http"
+          
+           - "--certificatesResolvers.lets.acme.email=seuemail@dominio.com"  # ajuste seu email!
+          
+          # configurações opcionais (comente para desativar)
+          - "--api.insecure=true" # habilita o dashboard!
+          - "--log.level=DEBUG" # log verbose
+          
+          # por padrao, use o servidor de teste do lets encrypted. Teste antes para nao cair nos rate limits!
+          - "--certificatesResolvers.lets.acme.caServer=https://acme-staging.api.letsencrypt.org/directory" # comentar esse trecho para gerar o certificado real!
+          
+        ports:
+            - 80:80
+            - 443:443 
+            - 8080:8080 # dashboard do traefik, liberar somente para conferencias
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+            - certs:/letsencrypt
+            
+volumes:
+    certs: 
