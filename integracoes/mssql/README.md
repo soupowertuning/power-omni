@@ -47,7 +47,7 @@ Você vai fornecer essa string quando for fazer o deploy do template.
 
 - Você vai precisar de um token de instalação. Basta solicitar ao time do Power Tuning no canal de suporte que preferir.
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fsoupowertuning%2Fpower-omni%2Frefs%2Fheads%2Fmain%2Fconectores%2Fmssql%2Fazdeploy.json)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fsoupowertuning%2Fpower-omni%2Frefs%2Fheads%2Fmain%2Fintegracoes%2Fmssql%2Fazdeploy.json)
 
 
 # Formato da procedure 

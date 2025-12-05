@@ -5,12 +5,12 @@
     "_generator": {
       "name": "bicep",
       "version": "0.39.26.7824",
-      "templateHash": "15418957393355157348"
+      "templateHash": "15882118061547075473"
     }
   },
   "parameters": {
     "StringConexao": {
-      "type": "string",
+      "type": "securestring",
       "metadata": {
         "description": "String de Conexao com o SQL Server"
       }
@@ -67,7 +67,35 @@
       "type": "string",
       "defaultValue": "[newGuid()]",
       "metadata": {
-        "description": "Valor aleatorio base para gerara as keys! Altere somente se for orientado pelo time da Power Tuning"
+        "description": "Valor aleatorio base para gerar as keys! Altere somente se for orientado pelo time da Power Tuning"
+      }
+    },
+    "planSkuName": {
+      "type": "string",
+      "defaultValue": "B1",
+      "metadata": {
+        "description": "Nome do Sku do App Service Plan"
+      }
+    },
+    "planSkuTier": {
+      "type": "string",
+      "defaultValue": "Basic",
+      "metadata": {
+        "description": "Tier do App Service Plan"
+      }
+    },
+    "planSkuSize": {
+      "type": "string",
+      "defaultValue": "B1",
+      "metadata": {
+        "description": "Tamanho do App Service Plan"
+      }
+    },
+    "planSkuCapacity": {
+      "type": "int",
+      "defaultValue": 1,
+      "metadata": {
+        "description": "Capacidade do App Service Plan"
       }
     }
   },
@@ -94,10 +122,10 @@
       "location": "[parameters('location')]",
       "kind": "linux",
       "sku": {
-        "name": "B1",
-        "tier": "Basic",
-        "size": "B1",
-        "capacity": 1
+        "name": "[parameters('planSkuName')]",
+        "tier": "[parameters('planSkuTier')]",
+        "size": "[parameters('planSkuSize')]",
+        "capacity": "[parameters('planSkuCapacity')]"
       },
       "properties": {
         "reserved": true
