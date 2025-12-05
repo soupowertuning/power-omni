@@ -1,0 +1,92 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Breve titulo",
+    "version": "1.0.0",
+    "description": "Breve descricao",
+    "x-custom-item": "Aqui dentro da key info, pode colocar fields customizados, que inicia com x"
+  },
+  "servers": [
+    {
+      "url": "https://seudominio.exemplo.com"
+    }
+  ],
+  "paths": {
+    "/endpoint/da/sua/api": {
+      "post": {
+        "summary": "Resumo do que faz",
+        "description": "Descricao mais detalhada",
+        "operationId": "SomenteLetrasMaisculas-minusculas-traco-ou_underline",
+        "parameters": [],
+        "requestBody": {
+          "description": "Parameters",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "PropX": {
+                    "type": "number",
+                    "format": "int32",
+                    "description": "descrever a propriedade",
+                    "default": "0"
+                  },
+                  "PropY": {
+                    "type": "number",
+                    "format": "int32",
+                    "description": "descrever outra propriedade",
+                    "default": "5"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Descrevar o resultado (opcional)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ResultExemplo1": {
+                      "type": "string",
+                      "description": "descricao opcional da propridade",
+                      "enum": [
+                        "success",
+                        "error"
+                      ]
+                    },
+                    "ResultExemplo2": {
+                      "type": "object",
+                      "description": "Outra propriedade retornada...",
+                      "additionalProperties": false,
+                      "properties": {}
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "AuthKeys": {}
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "AuthKeys": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "apikey"
+      }
+    }
+  },
+  "tags": []
+}
